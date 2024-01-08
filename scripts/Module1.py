@@ -93,46 +93,33 @@ def make_samples_list(species,species_map):
 def genome_preprocessing(species, genome_dir, annotations_dir, output_dir, hisat2_path):
     convert_gff = "gffread " + annotations_dir + '/' + species + ".gff -T -o " + output_dir + "/" + species + ".gtf"
     sp.call(convert_gff, shell=True)
-    #print(convert_gff)
     if hisat2_path != '':
-        #print(hisat2_path)
         generate_ss = "python "+ hisat2_path + "hisat2_extract_splice_sites.py " + output_dir + "/" + species + ".gtf > "+ output_dir + "/" + species + ".ss"
         sp.call(generate_ss, shell=True)
-        #print(generate_ss)
         generate_exon = "python "+ hisat2_path + "hisat2_extract_exons.py " + output_dir + "/" + species + ".gtf > "+ output_dir + "/" + species + ".exon"
         sp.call(generate_exon, shell=True)
-        #print(generate_exon)
         build_index = hisat2_path + "hisat2-build -p " + str(procs) + " --ss " + output_dir + "/" + species + ".ss --exon " + output_dir + "/" + species + ".exon -f " + genome_dir + "/" + species + ".fasta " + output_dir + "/" + species + "_annotations"
         sp.call(build_index, shell=True)
-        #print(build_index)
     else:
-        #print(hisat2_path)
         generate_ss = "python hisat2_extract_splice_sites.py " + output_dir + "/" + species + ".gtf > "+ output_dir + "/" + species + ".ss"
         sp.call(generate_ss, shell=True)
-        #print(generate_ss)
         generate_exon = "python hisat2_extract_exons.py " + output_dir + "/" + species + ".gtf > "+ output_dir + "/" + species + ".exon"
         sp.call(generate_exon, shell=True)
-        #print(generate_exon)
         build_index = "hisat2-build -p " + str(procs) + " --ss " + output_dir + "/" + species + ".ss --exon " + output_dir + "/" + species + ".exon -f " + genome_dir + "/" + species + ".fasta " + output_dir + "/" + species + "_annotations"
         sp.call(build_index, shell=True)
-        #print(build_index)
 
 def run_Hisat(samples,species,reads_dir,output_dir):
     for sample in samples:
         mkdir_command = "mkdir " + output_dir + "/" + species + '/' + sample 
-        #print(mkdir_command)
         sp.call(mkdir_command, shell=True)
         hisat = hisat2_path + "hisat2 -p " + str(procs) + " -k 10 --dta -x " + output_dir + "/" + species + "_annotations -1 " + reads_dir + "/" + sample + "_F.fastq.gz -2 " + reads_dir + "/" + sample + "_R.fastq.gz -S " + output_dir + "/" + species + "/" + sample + "/" + sample + "_aln.sam"
         sp.call(hisat, shell=True)
-        #print(hisat)
 
 def convert_to_bam(samples, species, output_dir):
     for sample in samples:
         samtools_call = "samtools sort -@ 16 -o " + output_dir + "/" + species + "/" + sample + "/" + sample + "_aln.bam " + output_dir + "/" + species + "/" + sample + "/" + sample + "_aln.sam"
-        #print(samtools_call)
         sp.call(samtools_call,shell=True)
         samtools_index = "samtools index " + output_dir + "/" + species + "/" + sample + "/" + sample + "_aln.bam"
-        #print(samtools_index)
         sp.call(samtools_index,shell=True)
 
 
@@ -141,7 +128,6 @@ def run_featureCounts(samples, species, output_dir, procs):
     for sample in samples:
         samples_string = samples_string + " " + output_dir + "/" + species + "/" + sample + "/" + sample + "_aln.bam"
     fc_command = "featureCounts -a " + output_dir + "/" + species + ".gtf -o " + output_dir + "/" + species + "/" + species + "_counts -T " + str(procs)+ " -p -C -g transcript_id -t CDS" + samples_string
-    #print(fc_command)
     sp.call(fc_command, shell=True)
 
 ########################################
