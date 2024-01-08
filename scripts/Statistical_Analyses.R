@@ -1,6 +1,3 @@
-
-
-
 library(ggplot2)
 library(ggridges)
 library(hash)
@@ -24,6 +21,7 @@ args <- parse_args(parser)
 
 
 input_dissimilarity_directory = args$input_dissimilarity_directory
+## Note, we used keyword_orthogroups_mod
 keyword_orthogroups = args$keyword_orthogroups
 genomes_dir = args$genomes_dir
 output_dir = args$output_dir
@@ -169,7 +167,6 @@ make_dissimilarities_table<-function(species_orthos,input_dissimilarity_director
   for (i in species_orthos){
     input_file = paste(getwd(),"/",input_dissimilarity_directory,"/",i,"/",
                        species1,'_',species2,"_dissimilarity_table.csv",sep='')
-    #print(input_file)
     row = read.csv(input_file)
     row_names_list<-c(row_names_list,i)
     Dissimiliarities_table<-rbind(Dissimiliarities_table,row)
@@ -195,10 +192,6 @@ make_dissimilarities_table<-function(species_orthos,input_dissimilarity_director
   
   return(Dissimiliarities_table)
 }
-
-
-
-
 
 
 ################################################################################################
@@ -253,15 +246,6 @@ for (i in 1:nrow(species_pairs)){
 
 
 
-
-
-
-
-
-
-
-
-
 for (i in 1:nrow(species_pairs)){
   species1<-species_pairs[i,1]
   species2<-species_pairs[i,2]
@@ -269,8 +253,9 @@ for (i in 1:nrow(species_pairs)){
   orthos<-get(pair_orthos_name)
 
   
-  Dissimiliarities_table<-make_dissimilarities_table(orthos,input_dissimilarity_directory,keyword_orthogroups_tab)
+Dissimiliarities_table<-make_dissimilarities_table(orthos,input_dissimilarity_directory,keyword_orthogroups_tab)
 
+## Remove a subset of orthogroups from comparisons that were misclassified as toxins
   if(species1=="Scatenatus" & species2=="Stergeminus"){
     remove_from_Sistrurus<-c("OG0003361","OG0000344","OG0011740","OG0000381","OG0000076","OG0011741","OG0005687","OG0014164","OG0000609","OG0000285")
     Dissimiliarities_table<-Dissimiliarities_table[!rownames(Dissimiliarities_table) %in% remove_from_Sistrurus,]
@@ -331,8 +316,7 @@ ggsave(file_name,plot = last_plot(), device="svg")
 
 
 ############################ Toxin Expression Plots
-
-
+## Remove a subset of orthogroups from comparisons that were misclassified as toxins
 remove_from_Sistrurus<-c("OG0003361","OG0000344","OG0011740","OG0000381","OG0000076","OG0011741","OG0005687","OG0014164","OG0000609","OG0000285")
 species1<-"Scatenatus"
 species2<-"Stergeminus"
@@ -367,8 +351,6 @@ Sc_St_multi_expr_wx<-pairwise.wilcox.test(Sc_St_multi_expr_violin_dat$dissimilar
                                     paired = TRUE)
 Sc_St_multi_expr_wx
 
-## Will need to estimate effect sizes when we can download coin.
-##Sc_St_expr_violin_dat %>% wilcox_effsize(dissimilarity~group, paired=TRUE)
 
 
 p<- ggplot(Sc_St_expr_violin_dat, aes(x=group, y=dissimilarity)) + 
@@ -376,9 +358,6 @@ p<- ggplot(Sc_St_expr_violin_dat, aes(x=group, y=dissimilarity)) +
 p<-p + stat_summary(fun.data="median_hilow", 
                  geom="crossbar", width=0.15 )
 p<-p + geom_jitter(shape=16, position=position_jitter(0.2),color = hash::values(color_hash,keys=Sc_St_expr_violin_dat$Toxin_family),size=3)
-
-
-
 
 
 
@@ -465,7 +444,6 @@ p<- ggplot(Sc_St_par_violin_dat, aes(x=group, y=dissimilarity)) +
 p<-p + stat_summary(fun.data="median_hilow", mult=1, 
                  geom="crossbar", width=0.11 )
 p<-p + geom_jitter(shape=16, position=position_jitter(0.2),color = hash::values(color_hash,keys=Sc_St_par_violin_dat$Toxin_family),size=3)
-
 
 
 
@@ -595,7 +573,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
 p
 wilcox.test(Sc_St_tox_non_orthologs[Sc_St_tox_non_orthologs$toxin_nontoxin=="nontoxin",]$Dissimilarity,
             Sc_St_tox_non_orthologs[Sc_St_tox_non_orthologs$toxin_nontoxin=="toxin",]$Dissimilarity, alternative="less")
-#ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Tox_Non_Seq.svg")
+#ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Tox_Non_Seq.svg")
 
 p<- ggplot(Sc_St_tox_non_paralogs, aes(x=toxin_nontoxin, y=Dissimilarity)) + 
   geom_violin(trim=TRUE,fill="grey") + theme_bw() + ggtitle("Sequence Divergence Genic Variation")
@@ -604,7 +582,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
 p
 wilcox.test(Sc_St_tox_non_paralogs[Sc_St_tox_non_paralogs$toxin_nontoxin=="nontoxin",]$Dissimilarity,
             Sc_St_tox_non_paralogs[Sc_St_tox_non_paralogs$toxin_nontoxin=="toxin",]$Dissimilarity, alternative="less")
-#ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Tox_Non_Genes.svg")
+#ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Tox_Non_Genes.svg")
 
 p<- ggplot(Sc_St_tox_non_expression, aes(x=toxin_nontoxin, y=Dissimilarity)) + 
   geom_violin(trim=TRUE,fill="grey") + theme_bw() + ggtitle("Expression")
@@ -613,7 +591,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
 p
 wilcox.test(Sc_St_tox_non_expression[Sc_St_tox_non_expression$toxin_nontoxin=="nontoxin",]$Dissimilarity,
             Sc_St_tox_non_expression[Sc_St_tox_non_expression$toxin_nontoxin=="toxin",]$Dissimilarity, alternative="less")
-#ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Tox_Non_Expression.svg")
+#ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Tox_Non_Expression.svg")
 
 
 
@@ -624,7 +602,7 @@ orthologs_v_overall_v_expression_tox<-subset(orthologs_v_overall_v_expression,or
 ggplot(data=orthologs_v_overall_v_expression_tox,aes(x=group, y=Dissimilarity, group = toxin_family, color=toxin_family)) +
   geom_line(size=2) + geom_point(size = 4.5) + theme_classic()
 
-#ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure3/pieces/Sc_St_lines.svg")
+#ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure3/pieces/Sc_St_lines.svg")
 
 #################
 
@@ -669,7 +647,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
 p
 wilcox.test(Bc_Bf_tox_non_orthologs[Bc_Bf_tox_non_orthologs$toxin_nontoxin=="nontoxin",]$Dissimilarity,
             Bc_Bf_tox_non_orthologs[Bc_Bf_tox_non_orthologs$toxin_nontoxin=="toxin",]$Dissimilarity, alternative="less")
-#ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Tox_Non_Seq.svg")
+#ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Tox_Non_Seq.svg")
 
 p<- ggplot(Bc_Bf_tox_non_paralogs, aes(x=toxin_nontoxin, y=Dissimilarity)) + 
   geom_violin(trim=TRUE,fill="grey") + theme_bw() + ggtitle("Sequence Divergence Genic Variation")
@@ -678,7 +656,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
 p
 wilcox.test(Bc_Bf_tox_non_paralogs[Bc_Bf_tox_non_paralogs$toxin_nontoxin=="nontoxin",]$Dissimilarity,
             Bc_Bf_tox_non_paralogs[Bc_Bf_tox_non_paralogs$toxin_nontoxin=="toxin",]$Dissimilarity, alternative="less")
-ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Tox_Non_Genes.svg")
+ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Tox_Non_Genes.svg")
 
 p<- ggplot(Bc_Bf_tox_non_expression, aes(x=toxin_nontoxin, y=Dissimilarity)) + 
   geom_violin(trim=TRUE,fill="grey") + theme_bw() + ggtitle("Expression")
@@ -687,7 +665,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
 p
 wilcox.test(Bc_Bf_tox_non_expression[Bc_Bf_tox_non_expression$toxin_nontoxin=="nontoxin",]$Dissimilarity,
             Bc_Bf_tox_non_expression[Bc_Bf_tox_non_expression$toxin_nontoxin=="toxin",]$Dissimilarity, alternative="less")
-ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Tox_Non_Expression.svg")
+ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Tox_Non_Expression.svg")
 
 
 
@@ -698,7 +676,7 @@ ggplot(data=orthologs_v_overall_v_expression_tox,aes(x=group, y=Dissimilarity, g
   geom_line(size=2) + geom_point(size = 4.5) + theme_classic()
 
 
-ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure3/pieces/Bc_Bf_lines.svg")
+ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure3/pieces/Bc_Bf_lines.svg")
 
 
 ################################################################################################
@@ -737,7 +715,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
                     geom="crossbar", width=0.11 )
 p<-p + geom_jitter(shape=16, position=position_jitter(0.2),color = hash::values(color_hash,keys=Sc_St_expr_violin_dat$Toxin_family),size=3)
 p
-ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Single_Multi_Expression.svg")
+ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Sc_St_Single_Multi_Expression.svg")
 
 
 
@@ -776,7 +754,7 @@ p<-p + stat_summary(fun.data="median_hilow", mult=1,
                     geom="crossbar", width=0.15 )
 p<-p + geom_jitter(shape=16, position=position_jitter(0.2),color = hash::values(color_hash,keys=Bc_Bf_expr_violin_dat$Toxin_family),size=3)
 p
-ggsave("~/Desktop/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Single_Multi_Expression.svg")
+ggsave("~/Sistrurus_Bothrops_genomes/Figures/Figure2/Bc_Bf_Single_Multi_Expression.svg")
 
 
 
